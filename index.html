@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نور الهدى - Noor Al-Huda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@200;400;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Cairo', 'sans-serif'],
+              serif: ['Amiri', 'serif'],
+            },
+            colors: {
+              primary: {
+                50: '#ecfdf5',
+                100: '#d1fae5',
+                200: '#a7f3d0',
+                300: '#6ee7b7',
+                400: '#34d399',
+                500: '#10b981',
+                600: '#059669',
+                700: '#047857',
+                800: '#065f46',
+                900: '#064e3b',
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300">
+    <div id="root"></div>
+  </body>
+</html>

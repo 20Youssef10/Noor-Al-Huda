@@ -1,0 +1,7 @@
+{
+  "name": "Noor Al-Huda",
+  "description": "A comprehensive Islamic web application featuring Quran, Hadith, Adhkar, and Prayer Times.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
