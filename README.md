@@ -49,6 +49,3 @@ npm run build
 - Tailwind CSS
 - Google Gemini API
 - Lucide React Icons
-
----
-تم التطوير بواسطة [اسمك] ابتغاء وجه الله تعالى.

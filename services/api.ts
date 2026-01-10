@@ -160,7 +160,7 @@ export const AIService = {
       });
 
       const result = await chat.sendMessage({ message: message });
-      return result.text;
+      return result.text || "";
     } catch (e) {
       console.error(e);
       return "حدث خطأ في الاتصال، يرجى المحاولة لاحقاً.";
