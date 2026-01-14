@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://noor-al-huda.app/sitemap.xml

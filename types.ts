@@ -83,6 +83,12 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface QuizConfig {
+  type: 'general' | 'prophets' | 'surah';
+  target?: string; // e.g. surah name
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
 export interface KhatmaPlan {
   days: number;
   currentPage: number;
@@ -98,11 +104,16 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export type ViewState = 'home' | 'quran' | 'hadith' | 'adhkar' | 'quiz' | 'khatma' | 'assistant';
+export type ViewState = 'home' | 'quran' | 'hadith' | 'adhkar' | 'quiz' | 'khatma' | 'assistant' | 'tracker' | 'qibla';
 
 export type AudioState = {
   isPlaying: boolean;
   currentSurah: Surah | null;
-  currentAyahIndex: number; 
-  audioUrl: string | null;
+  currentAyahIndex: number; // Index in the playlist array
+  playlist: Ayah[]; // The queue of ayahs to play
+}
+
+export interface HabitLog {
+  date: string; // ISO date string YYYY-MM-DD
+  completed: string[]; // Array of habit IDs (e.g., 'fajr', 'quran')
 }

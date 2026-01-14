@@ -1,5 +1,5 @@
-import { Surah, PrayerData, Ayah, ChatMessage } from '../types';
-import { GoogleGenAI } from "@google/genai";
+import { Surah, PrayerData, Ayah, ChatMessage, QuizConfig, QuizQuestion, Hadith } from '../types';
+import { GoogleGenAI, Type } from "@google/genai";
 
 // Simple Cache implementation to avoid hitting APIs too often
 const cache = new Map<string, { data: any, timestamp: number }>();
@@ -36,6 +36,50 @@ export const QuranService = {
      const response = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumberInSurah}/ar.muyassar`);
      const json = await response.json();
      return json.data.text;
+  }
+};
+
+export const HadithService = {
+  // Using a simplified endpoint for demonstration. In production, consider a robust paid API or a dedicated backend.
+  getBooks: async (): Promise<any[]> => {
+    return [
+      { id: 'bukhari', name: 'صحيح البخاري' },
+      { id: 'muslim', name: 'صحيح مسلم' },
+      { id: 'abudawud', name: 'سنن أبي داود' },
+      { id: 'tirmidzi', name: 'جامع الترمذي' },
+    ];
+  },
+
+  getHadithsByBook: async (bookId: string, page: number = 1): Promise<Hadith[]> => {
+    // Using github-hosted JSONs as a reliable free source for this example to avoid CORS issues on public APIs
+    // This maps specific hadiths. For a real SaaS, use a specialized API.
+    const key = `hadith-${bookId}-${page}`;
+    return fetchWithCache(key, async () => {
+      // Fallback mechanism or using a public proxy if needed. 
+      // Here we simulate fetching 10 random beneficial hadiths if API fails or for demo purposes
+      // real implementation would hit: https://api.hadith.gading.dev/books/${bookId}?range=1-50
+      
+      try {
+        const response = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-${bookId}.min.json`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const json = await response.json();
+        
+        // Return a slice based on "page" to simulate pagination
+        const start = (page - 1) * 20;
+        const end = start + 20;
+        const slice = json.hadiths.slice(start, end);
+        
+        return slice.map((h: any) => ({
+           hadithNumber: h.hadithnumber,
+           heading: '',
+           body: h.text,
+           book: bookId
+        }));
+      } catch (e) {
+        console.error("Hadith fetch error", e);
+        return [];
+      }
+    });
   }
 };
 
@@ -109,6 +153,29 @@ export const AIService = {
     }
   },
 
+  getAyahInsights: async (ayahText: string, type: 'kids' | 'benefits'): Promise<string> => {
+    try {
+        if (!process.env.API_KEY) return "AI Service not available";
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        let prompt = "";
+        if (type === 'kids') {
+            prompt = `اشرح هذه الآية القرآنية لطفل عمره 8 سنوات بأسلوب قصصي بسيط ومحبب باللغة العربية: "${ayahText}"`;
+        } else {
+            prompt = `استخرج 3 دروس عملية وفوائد تدبرية من هذه الآية بأسلوب نقاط مختصرة: "${ayahText}"`;
+        }
+  
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
+          contents: prompt,
+        });
+  
+        return response.text || "لم يتمكن المساعد من توليد الشرح.";
+      } catch (e) {
+        return "حدث خطأ في الاتصال.";
+      }
+  },
+
   generateDuaByEmotion: async (emotion: string): Promise<string> => {
     try {
       if (!process.env.API_KEY) return "Service unavailable";
@@ -164,6 +231,58 @@ export const AIService = {
     } catch (e) {
       console.error(e);
       return "حدث خطأ في الاتصال، يرجى المحاولة لاحقاً.";
+    }
+  },
+
+  generateQuiz: async (config: QuizConfig): Promise<QuizQuestion[]> => {
+    try {
+      if (!process.env.API_KEY) throw new Error("API Key missing");
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+      const prompt = `
+        Generate 5 multiple-choice questions about Islamic knowledge in Arabic.
+        Type: ${config.type}.
+        ${config.target ? `Focus specifically on: ${config.target}.` : ''}
+        Difficulty: ${config.difficulty}.
+
+        Return ONLY a JSON array with this structure (no markdown):
+        [{
+          "id": number,
+          "question": "string",
+          "options": ["string", "string", "string", "string"],
+          "correctIndex": number (0-3),
+          "explanation": "brief explanation"
+        }]
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.NUMBER },
+                question: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctIndex: { type: Type.NUMBER },
+                explanation: { type: Type.STRING }
+              }
+            }
+          }
+        }
+      });
+
+      const text = response.text || "[]";
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("Quiz generation failed", e);
+      return [
+         { id: 1, question: "حدث خطأ في توليد الأسئلة، يرجى المحاولة مرة أخرى", options: ["نعم", "لا", "-", "-"], correctIndex: 0, explanation: "" }
+      ];
     }
   }
 };
